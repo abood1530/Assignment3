@@ -35,19 +35,23 @@ public class MyService extends Service {
                     int total = mediaPlayer.getDuration();
                     MainActivity.prog.setMax(total);
 
-                    while (mediaPlayer != null && mediaPlayer.isPlaying()) {
+                    while (mediaPlayer != null) {
                         try {
                             Thread.sleep(1000);
-                        } catch (InterruptedException e) { }
+                        } catch (InterruptedException e) {}
+
                         handler.post(new Runnable() {
                             @Override
                             public void run() {
-                                int pos = mediaPlayer.getCurrentPosition();
-                                MainActivity.prog.setProgress(pos);
-                                MainActivity.timeTxt.setText(pos / 1000 + " s");
+                                if (mediaPlayer != null && isPlaying && mediaPlayer.isPlaying()) {
+                                    int pos = mediaPlayer.getCurrentPosition();
+                                    MainActivity.prog.setProgress(pos);
+                                    MainActivity.timeTxt.setText(pos / 1000 + " s");
+                                }
                             }
                         });
                     }
+
                 }
             }).start();
         }
@@ -57,12 +61,16 @@ public class MyService extends Service {
     @Override
     public void onDestroy() {
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
             mediaPlayer.release();
+            mediaPlayer = null;
             isPlaying = false;
         }
         super.onDestroy();
     }
+
 
     @Nullable
     @Override
